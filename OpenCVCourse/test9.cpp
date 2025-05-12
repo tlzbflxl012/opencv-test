@@ -17,7 +17,7 @@ vector<Scalar> myColorValues{
 	{0,255,0}, // green
 	{51,153,255} }; // orange
 
-void getContours(Mat imgDil) {
+Point getContours(Mat imgDil) {
 	vector<vector<Point>> contours; // 도형 하나를 구성하는 여러 개의 점(Point)들의 집합.
 	vector<Vec4i> hierarchy;
 
@@ -29,6 +29,8 @@ void getContours(Mat imgDil) {
 	// CHAIN_APPROX_SIMPLE: 윤곽선을 구성하는 점들을 간략화. 수평선이나 직선에 불필요한 중복 좌표들을 제거해서 메모리 절약.
 	vector<vector<Point>> conPoly(contours.size()); 
 	vector<Rect> boundRect(contours.size());
+
+	Point myPoint(0, 0);
 
 	for (int i = 0; i < contours.size(); i++)
 	{
@@ -47,29 +49,16 @@ void getContours(Mat imgDil) {
 
 			cout << conPoly[i].size() << endl;
 			boundRect[i] = boundingRect(conPoly[i]);
-			int objCor = (int)conPoly[i].size();
-
-			if (objCor == 3) objectType = "Tri";
-			if (objCor == 4)
-			{
-				float aspRatio = (float)boundRect[i].width / (float)boundRect[i].height;
-				cout << aspRatio << endl;
-				if (aspRatio > 0.95 && aspRatio < 1.05)
-				{
-					objectType = "Square";
-				}
-				else
-				{
-					objectType = "Rect";
-				}
-			}
-			if (objCor > 4) objectType = "Circle";
+			myPoint.x = boundRect[i].x + boundRect[i].width / 2;
+			myPoint.y = boundRect[i].y;
 
 			drawContours(img, contours, i, Scalar(255, 0, 255), 2);
 			rectangle(img, boundRect[i].tl(), boundRect[i].br(), Scalar(0, 255, 0), 5);
 			putText(img, objectType, { boundRect[i].x, boundRect[i].y - 5 }, FONT_HERSHEY_PLAIN, 1, Scalar(0, 69, 255), 2);
 		}
 	}
+
+	return myPoint;
 }
 
 void findColor(Mat img)
@@ -84,7 +73,7 @@ void findColor(Mat img)
 		Mat mask;
 		inRange(imgHSV, lower, upper, mask);
 		//imshow(to_sring(i), mask);
-		getContours(mask);
+		Point myPoint = getContours(mask);
 	}
 }
 
